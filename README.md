@@ -9,5 +9,5 @@ curl https://chromedriver.storage.googleapis.com/100.0.4896.60/chromedriver_mac6
 unzip chromedriver.zip
 
 # run
-PATH=$(PWD):$PATH go run *.go
+CREDENTIAL_JSON=<token path> SHEET_ID=<sheet id> PATH=$(PWD):$PATH go run *.go
 ```

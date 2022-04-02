@@ -2,13 +2,13 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"log"
 	"os"
 	"time"
 
 	"github.com/sclevine/agouti"
+	"github.com/solami/uniqrawler/sheet"
 )
 
 func main() {
@@ -30,12 +30,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to open page:%v", err)
 	}
+	var results [][]interface{}
 	// キーワードごとに検索実行
 	for _, keyword := range keywords {
-		// ヘッダー出力
-		fmt.Printf("-----------------\n")
-		fmt.Printf("keyword: %s\n", keyword)
-		fmt.Printf("-----------------\n")
 		// 検索実行
 		products, err := Search(page, keyword)
 		if err != nil {
@@ -44,8 +41,24 @@ func main() {
 		time.Sleep(2 * time.Second)
 		// 検索結果を出力
 		for _, product := range products {
-			fmt.Println(product.String())
+			var result []interface{}
+			result = append(result, keyword)
+			result = append(result, product.name)
+			results = append(results, result)
 		}
+	}
+	page.CloseWindow()
+
+	// スプレッドシートに書き込み
+	credentials := os.Getenv("CREDENTIAL_JSON")
+	sheet, err := sheet.NewSpreadSheets(credentials)
+	if err != nil {
+		log.Fatalf("Failed to initialize spreadsheet service:%v", err)
+	}
+	sheetID := os.Getenv("SHEET_ID")
+	err = sheet.Append(sheetID, results)
+	if err != nil {
+		log.Fatalf("Failed to write spreadsheet:%v", err)
 	}
 }
 
